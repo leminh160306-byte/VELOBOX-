@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VELOBOX - Hệ Thống Hộp Nhận Hàng Thông Minh</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            850: '#0f3c20',
+                            900: '#14532d',
+                        }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-100 text-slate-800 h-full flex flex-col overflow-hidden">
+
+    <!-- 1. MÀN HÌNH ĐĂNG NHẬP (LOGIN VIEW) -->
+    <div id="login-screen" class="fixed inset-0 bg-slate-950 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 space-y-6">
+            <div class="text-center">
+                <div class="w-16 h-16 rounded-2xl bg-brand-600 text-white flex items-center justify-center text-3xl mx-auto shadow-lg mb-3">
+                    <i class="fa-solid fa-box-open"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900">VELOBOX SYSTEM</h2>
+                <p class="text-xs text-slate-500 mt-1">Hệ thống Tủ Giao Nhận Hàng Thông Minh (ĐH Thủy Lợi)</p>
+            </div>
+
+            <!-- Tài khoản mẫu nhanh cho giảng viên/người dùng trải nghiệm -->
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+                <span class="text-xs font-bold text-slate-700 block"><i class="fa-solid fa-bolt text-amber-500"></i> Chọn nhanh vai trò đăng nhập mẫu:</span>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="fillLogin('resident', 'linh.vt', '123')" class="bg-white hover:bg-brand-50 border p-2 rounded-xl text-xs font-semibold text-slate-700 transition">👤 Cư dân</button>
+                    <button onclick="fillLogin('shipper', 'shipper.spx', '123')" class="bg-white hover:bg-brand-50 border p-2 rounded-xl text-xs font-semibold text-slate-700 transition">🚚 Shipper</button>
+                    <button onclick="fillLogin('admin', 'admin.velobox', '123')" class="bg-white hover:bg-brand-50 border p-2 rounded-xl text-xs font-semibold text-slate-700 transition">⚙️ Quản trị</button>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Tên đăng nhập / Email:</label>
+                    <input type="text" id="loginUsername" placeholder="Nhập tên đăng nhập..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Mật khẩu:</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-brand-600">
+                </div>
+                <button onclick="handleLogin()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3.5 rounded-xl text-sm shadow-lg shadow-brand-900/20 transition">
+                    Đăng nhập hệ thống <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. GIAO DIỆN CHÍNH SAU KHI ĐĂNG NHẬP -->
+    <div id="app-screen" class="h-full flex flex-col hidden">
+        <!-- Header -->
+        <header class="bg-slate-900 text-white shadow-md z-30 flex-shrink-0">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-brand-500 text-white p-2 rounded-xl shadow-lg flex items-center justify-center w-10 h-10">
+                        <i class="fa-solid fa-box-open text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                            VELOBOX <span class="text-xs bg-brand-500/20 text-brand-400 border border-brand-500/30 px-2 py-0.5 rounded-full font-medium">Smart Locker</span>
+                        </h1>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2 pl-3 border-l border-slate-700">
+                        <div class="w-9 h-9 rounded-full bg-slate-700 flex items-center justify-center text-brand-400 font-bold text-sm border border-slate-600" id="userAvatar">HL</div>
+                        <div class="text-left hidden sm:block">
+                            <div class="text-xs font-semibold text-slate-200" id="userName">Vũ Trần Huyền Linh</div>
+                            <div class="text-[10px] text-brand-400" id="userRoleBadge">Cư dân - Căn hộ A-1204</div>
+                        </div>
+                    </div>
+                    <button onclick="handleLogout()" class="bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 text-xs font-medium px-3 py-2 rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Body Layout -->
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Sidebar -->
+            <aside class="w-20 md:w-64 bg-slate-900/95 border-r border-slate-800 flex flex-col justify-between flex-shrink-0 z-20">
+                <nav class="p-3 space-y-1.5" id="sidebarNav"></nav>
+            </aside>
+            <!-- Main Content -->
+            <main class="flex-1 bg-slate-100 overflow-y-auto relative" id="mainContentArea"></main>
+        </div>
+    </div>
+
+    <!-- Application Script Logic -->
+    <script>
+        // Database mô phỏng trạng thái chia sẻ giữa các vai trò (Liên kết nhân quả)
+        let appState = {
+            currentUser: null,
+            parcels: [
+                { id: 'VB-89214', store: 'Shopee - Thời Trang Nam', recipient: 'Vũ Trần Huyền Linh', locker: 'A-04 (M)', status: 'Chờ lấy hàng', time: '14:20 - Hôm nay', pin: '849201' },
+                { id: 'VB-87210', store: 'TikTok Shop - Mỹ Phẩm', recipient: 'Vũ Trần Huyền Linh', locker: 'A-02 (S)', status: 'Chờ lấy hàng', time: '09:12 - Hôm nay', pin: '739201' }
+            ],
+            lockers: [
+                { id: 'A-01', size: 'S', status: 'available' },
+                { id: 'A-02', size: 'S', status: 'occupied' },
+                { id: 'A-03', size: 'M', status: 'available' },
+                { id: 'A-04', size: 'M', status: 'occupied' }
+            ]
+        };
+
+        const usersDb = [
+            { username: 'linh.vt', pass: '123', role: 'resident', name: 'Vũ Trần Huyền Linh', badge: 'Cư dân - Căn hộ A-1204', avatar: 'HL' },
+            { username: 'shipper.spx', pass: '123', role: 'shipper', name: 'Phạm Ngọc Tuấn Hùng', badge: 'Shipper - SPX Express', avatar: 'HN' },
+            { username: 'admin.velobox', pass: '123', role: 'admin', name: 'ThS. Bùi Thị Giang', badge: 'Quản trị viên Hệ thống', avatar: 'BG' }
+        ];
+
+        const menus = {
+            resident: [
+                { id: 'res_home', label: 'Hộp trực tuyến của tôi', icon: 'fa-boxes-packing' },
+                { id: 'res_stations', label: 'Tra cứu trạm tủ', icon: 'fa-map-location-dot' }
+            ],
+            shipper: [
+                { id: 'shp_drop', label: 'Quét & Thả hàng vào tủ', icon: 'fa-qrcode' },
+                { id: 'shp_tasks', label: 'Nhiệm vụ trong ca', icon: 'fa-list-check' }
+            ],
+            admin: [
+                { id: 'adm_dash', label: 'Tổng quan hệ thống', icon: 'fa-chart-pie' },
+                { id: 'adm_lockers', label: 'Giám sát Ô tủ & Mở khóa từ xa', icon: 'fa-server' }
+            ]
+        };
+
+        function fillLogin(role, user, pass) {
+            document.getElementById('loginUsername').value = user;
+            document.getElementById('loginPassword').value = pass;
+        }
+
+        function handleLogin() {
+            const u = document.getElementById('loginUsername').value.trim();
+            const p = document.getElementById('loginPassword').value.trim();
+
+            const found = usersDb.find(x => x.username === u && x.pass === p);
+            if (!found) {
+                alert('Sai tên đăng nhập hoặc mật khẩu! (Hãy bấm chọn nhanh các tài khoản mẫu phía trên).');
+                return;
+            }
+
+            appState.currentUser = found;
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('hidden');
+
+            document.getElementById('userName').innerText = found.name;
+            document.getElementById('userRoleBadge').innerText = found.badge;
+            document.getElementById('userAvatar').innerText = found.avatar;
+
+            renderSidebar();
+            renderContent(menus[found.role][0].id);
+        }
+
+        function handleLogout() {
+            appState.currentUser = null;
+            document.getElementById('app-screen').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+
+        function renderSidebar() {
+            const nav = document.getElementById('sidebarNav');
+            const currentMenus = menus[appState.currentUser.role];
+            nav.innerHTML = currentMenus.map(m => `
+                <button onclick="renderContent('${m.id}')" class="w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid ${m.icon} w-5 text-center"></i>
+                    <span class="hidden md:inline">${m.label}</span>
+                </button>
+            `).join('');
+        }
+
+        function renderContent(tabId) {
+            const main = document.getElementById('mainContentArea');
+            const role = appState.currentUser.role;
+
+            if (role === 'resident') {
+                if (tabId === 'res_home') {
+                    main.innerHTML = `
+                        <div class="p-6 max-w-5xl mx-auto space-y-6">
+                            <h2 class="text-xl font-bold text-slate-900">Hộp trực tuyến chờ nhận của Cư dân</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                ${appState.parcels.map(p => `
+                                    <div class="bg-white p-5 rounded-2xl border shadow-sm flex flex-col justify-between">
+                                        <div>
+                                            <span class="text-xs font-bold text-brand-700 bg-brand-100 px-2 py-0.5 rounded">${p.id}</span>
+                                            <h4 class="font-bold text-slate-800 text-sm mt-2">${p.store}</h4>
+                                            <p class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-location-dot text-rose-500"></i> Ô tủ: <strong>${p.locker}</strong></p>
+                                        </div>
+                                        <div class="mt-4 pt-3 border-t flex justify-between items-center">
+                                            <span class="text-xs font-mono bg-slate-100 px-2 py-1 rounded">PIN: <strong>${p.pin}</strong></span>
+                                            <button onclick="residentOpen('${p.id}')" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition">
+                                                <i class="fa-solid fa-unlock mr-1"></i> Mở tủ lấy hàng
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    main.innerHTML = `<div class="p-6 max-w-4xl mx-auto"><h2 class="text-xl font-bold">Danh sách Trạm VELOBOX lân cận</h2><p class="text-xs text-slate-500 mt-1">Sảnh A và Hầm B1 Chung cư Thủy Lợi hoạt động tốt.</p></div>`;
+                }
+            } else if (role === 'shipper') {
+                if (tabId === 'shp_drop') {
+                    main.innerHTML = `
+                        <div class="p-6 max-w-2xl mx-auto space-y-6">
+                            <div class="bg-white p-6 rounded-2xl border shadow-sm space-y-4">
+                                <h2 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-qrcode text-brand-600"></i> Shipper thả hàng vào tủ VELOBOX</h2>
+                                <p class="text-xs text-slate-500">Hành động này sẽ kích hoạt hệ thống tự động sinh OTP và báo tin nhắn Zalo cho Cư dân.</p>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">Mã vận đơn / Order ID:</label>
+                                    <input type="text" id="newCode" placeholder="Nhập mã (VD: SPX-88391)" class="w-full bg-slate-50 border rounded-xl p-3 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">Tên cửa hàng / Sàn:</label>
+                                    <input type="text" id="newStore" placeholder="Shopee / Lazada..." class="w-full bg-slate-50 border rounded-xl p-3 text-sm" value="Shopee - Điện Tử">
+                                </div>
+                                <button onclick="shipperSubmit()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-3 rounded-xl text-sm shadow transition">
+                                    Xác nhận thả hàng vào ô trống & Gửi thông báo cho Cư dân
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    main.innerHTML = `<div class="p-6 max-w-4xl mx-auto"><h2 class="text-xl font-bold">Nhiệm vụ giao hàng trong ca</h2><p class="text-xs text-slate-500 mt-1">Đã hoàn thành 3/5 đơn hàng đưa vào trạm.</p></div>`;
+                }
+            } else if (role === 'admin') {
+                if (tabId === 'adm_dash') {
+                    main.innerHTML = `
+                        <div class="p-6 max-w-5xl mx-auto space-y-6">
+                            <h2 class="text-xl font-bold text-slate-900">Dashboard Quản trị hệ thống VELOBOX</h2>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="bg-white p-5 rounded-2xl border shadow-sm"><div class="text-xs text-slate-500">Tổng trạm tủ</div><div class="text-2xl font-bold text-slate-900 mt-1">3 Trạm</div></div>
+                                <div class="bg-white p-5 rounded-2xl border shadow-sm"><div class="text-xs text-slate-500">Hộp trực tuyến active</div><div class="text-2xl font-bold text-brand-600 mt-1">${appState.parcels.length} Đơn</div></div>
+                                <div class="bg-white p-5 rounded-2xl border shadow-sm"><div class="text-xs text-slate-500">Trạng thái Server</div><div class="text-2xl font-bold text-emerald-600 mt-1">Online</div></div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    main.innerHTML = `<div class="p-6 max-w-4xl mx-auto"><h2 class="text-xl font-bold">Giám sát Ô tủ & Mở khóa từ xa</h2><p class="text-xs text-slate-500 mt-1">Quản trị viên có thể cấp quyền hoặc mở khóa cưỡng bức khi có sự cố.</p></div>`;
+                }
+            }
+        }
+
+        // Tác vụ tương tác chéo: Shipper thả hàng -> Cư dân nhận được
+        function shipperSubmit() {
+            const code = document.getElementById('newCode').value.trim();
+            const store = document.getElementById('newStore').value.trim();
+            if (!code) { alert('Vui lòng nhập mã vận đơn!'); return; }
+
+            const randomPin = Math.floor(100000 + Math.random() * 900000).toString();
+            appState.parcels.push({
+                id: code,
+                store: store,
+                recipient: 'Vũ Trần Huyền Linh',
+                locker: 'B-03 (M)',
+                status: 'Chờ lấy hàng',
+                time: 'Vừa xong',
+                pin: randomPin
+            });
+
+            alert(`Thành công! Shipper đã bỏ hàng vào ô B-03. Hệ thống đã tự động gửi mã OTP (${randomPin}) sang tài khoản của Cư dân.`);
+            document.getElementById('newCode').value = '';
+        }
+
+        // Tác vụ Cư dân mở tủ lấy hàng
+        function residentOpen(parcelId) {
+            if (confirm(`Xác nhận mở ô tủ để lấy bưu kiện ${parcelId}?`)) {
+                appState.parcels = appState.parcels.filter(p => p.id !== parcelId);
+                alert('Mở tủ thành công! Hộp trực tuyến đã được giải phóng trạng thái.');
+                renderContent('res_home');
+            }
+        }
+    </script>
+</body>
+</html>
